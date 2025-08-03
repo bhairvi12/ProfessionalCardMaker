@@ -28,13 +28,13 @@ export interface CardStyle {
 
 function App() {
   const [cardData, setCardData] = useState<CardData>({
-    name: 'John Doe',
-    title: 'Senior Developer',
-    company: 'Tech Solutions Inc.',
-    email: 'john.doe@techsolutions.com',
-    phone: '+1 (555) 123-4567',
-    website: 'www.techsolutions.com',
-    address: '123 Business Ave, Tech City, TC 12345'
+    name: '',
+    title: '',
+    company: '',
+    email: '',
+    phone: '',
+    website: '',
+    address: ''
   });
 
   const [cardStyle, setCardStyle] = useState<CardStyle>({
