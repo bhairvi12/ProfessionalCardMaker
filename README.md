@@ -10,10 +10,6 @@ Create and export stunning, customizable business cards directly from your brows
 - Print-ready layout
 - Web share and clipboard support
 
-## 📸 Demo
-
-![Card Maker Preview]("C:\Users\bhair\OneDrive\Pictures\Screenshots\Screenshot 2025-08-04 175936.png")
-
 ## 🛠️ Tech Stack
 
 - React + TypeScript
