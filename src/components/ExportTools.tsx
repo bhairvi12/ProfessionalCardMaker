@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Download, FileImage, Printer, Share2 } from 'lucide-react';
+import { Download, FileImage, Printer, Share2, Sparkles, Info } from 'lucide-react';
 import { CardData, CardStyle } from '../App';
+import html2canvas from 'html2canvas';
+
 
 interface ExportToolsProps {
   cardRef: React.RefObject<HTMLDivElement>;
@@ -12,61 +14,29 @@ const ExportTools: React.FC<ExportToolsProps> = ({ cardRef, cardData, cardStyle 
   const [isExporting, setIsExporting] = useState(false);
 
   const exportAsPNG = async () => {
-    if (!cardRef.current) return;
+  if (!cardRef.current) return;
 
-    setIsExporting(true);
-    try {
-      // Create a canvas to render the card
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Set canvas size (business card standard: 3.5" x 2" at 300 DPI)
-      canvas.width = 1050; // 3.5" * 300 DPI
-      canvas.height = 600;  // 2" * 300 DPI
-      
-      if (ctx) {
-        // Create a simple card representation
-        const cardElement = cardRef.current;
-        const rect = cardElement.getBoundingClientRect();
-        
-        // Scale to canvas size
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        // For now, create a simple representation
-        // In a real app, you'd use html2canvas or similar library
-        ctx.fillStyle = cardStyle.backgroundColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Add text (simplified)
-        ctx.fillStyle = cardStyle.textColor;
-        ctx.font = '48px Arial';
-        ctx.fillText(cardData.name, 50, 100);
-        
-        ctx.font = '24px Arial';
-        ctx.fillText(cardData.title, 50, 150);
-        ctx.fillText(cardData.company, 50, 200);
-        
-        // Convert to blob and download
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${cardData.name.replace(/\s+/g, '_')}_business_card.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  setIsExporting(true);
+  try {
+    const canvas = await html2canvas(cardRef.current, {
+      scale: 3, // Increase resolution
+      useCORS: true, // Support for external fonts/images
+      backgroundColor: null, // Use existing background
+    });
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `${cardData.name.replace(/\s+/g, '_')}_business_card.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Export failed:', error);
+  } finally {
+    setIsExporting(false);
+  }
+};
 
   const printCard = () => {
     if (!cardRef.current) return;
@@ -116,53 +86,92 @@ const ExportTools: React.FC<ExportToolsProps> = ({ cardRef, cardData, cardStyle 
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">Export & Share</h3>
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center space-x-2">
+          <Download className="w-5 h-5 text-indigo-500" />
+          <span>Export & Share</span>
+        </h3>
+        <p className="text-gray-600 text-sm">Download or share your professional card</p>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <button
           onClick={exportAsPNG}
           disabled={isExporting}
-          className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
+          className="group w-full flex items-center justify-center space-x-3 px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-2xl transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
         >
           <FileImage className="w-5 h-5" />
-          <span>{isExporting ? 'Exporting...' : 'Download as PNG'}</span>
+          <span className="font-semibold">
+            {isExporting ? 'Exporting...' : 'Download as PNG'}
+          </span>
+          {!isExporting && <Sparkles className="w-4 h-4 opacity-70" />}
         </button>
 
         <button
           onClick={printCard}
-          className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          className="group w-full flex items-center justify-center space-x-3 px-6 py-4 bg-white/50 backdrop-blur-sm hover:bg-white/70 text-gray-700 hover:text-gray-900 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-white/30 hover:border-white/50 shadow-lg hover:shadow-xl"
         >
           <Printer className="w-5 h-5" />
-          <span>Print Card</span>
+          <span className="font-semibold">Print Card</span>
         </button>
 
         <button
           onClick={shareCard}
-          className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          className="group w-full flex items-center justify-center space-x-3 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl"
         >
           <Share2 className="w-5 h-5" />
-          <span>Share Card</span>
+          <span className="font-semibold">Share Card</span>
         </button>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-2">Export Tips</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• PNG format is ideal for digital sharing</li>
-          <li>• Print on standard business card stock (3.5" × 2")</li>
-          <li>• Use high-quality paper for best results</li>
-          <li>• Consider printing in bulk for cost savings</li>
+      <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
+        <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+          <Info className="w-4 h-4 text-indigo-500" />
+          <span>Export Guidelines</span>
+        </h4>
+        <ul className="text-sm text-gray-600 space-y-2">
+          <li className="flex items-start space-x-2">
+            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-2 flex-shrink-0"></div>
+            <span>PNG format provides the best quality for digital sharing</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-2 flex-shrink-0"></div>
+            <span>Print on premium business card stock (350gsm recommended)</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-2 flex-shrink-0"></div>
+            <span>Standard size: 3.5" × 2" (89mm × 51mm)</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-2 flex-shrink-0"></div>
+            <span>Consider ordering in bulk for better pricing</span>
+          </li>
         </ul>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-4">
-        <h4 className="font-medium text-blue-900 mb-2">Card Information</h4>
-        <div className="text-sm text-blue-700 space-y-1">
-          <div><strong>Dimensions:</strong> 3.5" × 2" (Standard)</div>
-          <div><strong>Resolution:</strong> 300 DPI (Print Quality)</div>
-          <div><strong>Template:</strong> {cardStyle.template}</div>
-          <div><strong>Font:</strong> {cardStyle.font}</div>
+      <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
+        <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+          <Sparkles className="w-4 h-4 text-purple-500" />
+          <span>Card Specifications</span>
+        </h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Dimensions:</span>
+            <p className="text-gray-600">3.5" × 2" (Standard)</p>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Resolution:</span>
+            <p className="text-gray-600">300 DPI (Print Quality)</p>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Template:</span>
+            <p className="text-gray-600 capitalize">{cardStyle.template}</p>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Font:</span>
+            <p className="text-gray-600">{cardStyle.font}</p>
+          </div>
         </div>
       </div>
     </div>
