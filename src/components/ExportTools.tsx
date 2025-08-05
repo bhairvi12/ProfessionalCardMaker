@@ -18,11 +18,21 @@ const ExportTools: React.FC<ExportToolsProps> = ({ cardRef, cardData, cardStyle 
 
   setIsExporting(true);
   try {
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 3, // Increase resolution
-      useCORS: true, // Support for external fonts/images
-      backgroundColor: null, // Use existing background
-    });
+     const clone = cardRef.current.cloneNode(true) as HTMLElement;
+document.body.appendChild(clone); // Temporarily add to DOM for rendering
+
+clone.style.position = 'absolute';
+clone.style.top = '-10000px'; // Hide it from view
+clone.style.left = '-10000px';
+
+const canvas = await html2canvas(clone, {
+  scale: 3,
+  useCORS: true,
+  backgroundColor: null,
+});
+
+document.body.removeChild(clone); // Clean up after rendering
+
 
     const dataUrl = canvas.toDataURL('image/png');
     const a = document.createElement('a');
